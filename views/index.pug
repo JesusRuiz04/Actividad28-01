@@ -1,0 +1,92 @@
+extends layout
+
+block content
+  link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', integrity='sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+Wy6pNNKxqVnOq+3bE+ceBQ/w2J60DAF5KQ', crossorigin='anonymous')
+
+  nav.navbar.navbar-expand-lg.navbar-light.bg-light
+    .container
+      a.navbar-brand(href='#') Project Name
+      button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
+        span.navbar-toggler-icon
+      .collapse.navbar-collapse#navbarNav
+        ul.navbar-nav
+          li.nav-item
+            a.nav-link(href='#', onclick='mostrarTablaMultiplicar()') Tabla de Multiplicar
+          li.nav-item
+            a.nav-link(href='javascript:void(0)', onclick='generarQuiniela()') Generar Quiniela
+          li.nav-item
+            a.nav-link(href='javascript:void(0)', onclick='mostrarAcercaDe()') Acerca De...
+
+  .container.mt-3
+    h1.text-center Formulario de Tabla de Multiplicar
+    form#multiplicarForm
+      .mb-3
+        label(for='base') Ingrese el número base:
+        input#base.form-control(type='number', name='base', required)
+      button.btn.btn-primary(type='button', onclick='mostrarTablaMultiplicar()') Obtener Tabla de Multiplicar
+
+    div#resultadoDiv.mt-4(style='display: none;')
+      h3.text-center Resultado:
+      table.table.table-bordered
+        thead
+          tr
+            th(scope='col') Multiplicador
+            th(scope='col') Resultado
+        tbody(id='resultadoBody')
+
+  script(src='https://cdn.socket.io/4.1.2/socket.io.min.js')
+  script(src='https://code.jquery.com/jquery-3.6.0.slim.min.js', integrity='sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm', crossorigin='anonymous')
+  script(src='https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js', integrity='sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl', crossorigin='anonymous')
+  script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js', integrity='sha384-GLhlTQ8iK7JoHP+T0MznbKAAYb6YV0Z66Eli7DeQPbFtFqO8fsUgScb/HF++1z4', crossorigin='anonymous')
+
+  script.
+    var socket = io();
+
+    function mostrarTablaMultiplicar() {
+      var base = document.getElementById('base').value;
+      var resultadoDiv = document.getElementById('resultadoDiv');
+      var resultadoBody = document.getElementById('resultadoBody');
+
+      resultadoBody.innerHTML = '';
+
+      if (!isNaN(base) && base.trim() !== '') {
+        resultadoDiv.style.display = 'block';
+
+        for (var i = 1; i <= 10; i++) {
+          var multiplicacion = base + ' x ' + i;
+          var resultado = base * i;
+
+          var tr = document.createElement('tr');
+          var tdMultiplicador = document.createElement('td');
+          var tdResultado = document.createElement('td');
+
+          tdMultiplicador.textContent = multiplicacion;
+          tdResultado.textContent = resultado;
+
+          tr.appendChild(tdMultiplicador);
+          tr.appendChild(tdResultado);
+
+          resultadoBody.appendChild(tr);
+        }
+      } else {
+        resultadoDiv.style.display = 'none';
+      }
+    }
+
+    function generarQuiniela() {
+      socket.emit('generarQuiniela');
+
+      socket.on('quinielaGenerada', (quiniela) => {
+        console.log('Quiniela generada:', quiniela);
+        mostrarQuinielaEnInterfaz(quiniela);
+      });
+    }
+
+    function mostrarQuinielaEnInterfaz(quiniela) {
+      var quinielaString = 'Quiniela Generada:\n' + quiniela.join(', ');
+      alert(quinielaString);
+    }
+
+    function mostrarAcercaDe() {
+      alert('Información básica sobre la aplicación.');
+    }
